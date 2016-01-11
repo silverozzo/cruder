@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'first',
+    'simple_audit',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -49,6 +50,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'simple_audit.middleware.TrackingRequestOnThreadLocalMiddleware',
 )
 
 ROOT_URLCONF = 'cruder.urls'
@@ -70,6 +72,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'cruder.wsgi.application'
+
+DJANGO_SIMPLE_AUDIT_ACTIVATED = True
 
 
 # Database
