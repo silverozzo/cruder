@@ -1,9 +1,9 @@
 {% if foobars %}
 	<ul>
 		{% for foobar in foobars %}
-			<li>{{ foobar }}</li>
+			<li><a href={% url 'first:edit' foobar.id %} >{{ foobar }}</a></li>
 		{% endfor %}
 	</ul>
 {% else %}
-	fuck off!
+	no records
 {% endif %}

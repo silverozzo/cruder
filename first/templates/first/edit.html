@@ -1,0 +1,6 @@
+edit form here for: {{ foobar }}
+<form action={% url 'first:update' foobar.id %} method="post">
+	{% csrf_token %}
+	<input type="text" name="test" />
+	<input type="submit"/>
+</form>
