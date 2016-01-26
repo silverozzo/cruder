@@ -11,7 +11,7 @@ class Foobar(models.Model):
 	extra_file   = models.FileField(upload_to='uploads/', blank=True)
 	
 	def __str__(self):
-		return self.content_text
+		return self.content_text + '(' + str(self.id) + ')'
 
 
 simple_audit.register(Foobar)

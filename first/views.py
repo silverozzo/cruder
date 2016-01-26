@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http              import HttpResponse, HttpResponseRedirect
 from django.shortcuts         import get_object_or_404, render
 from django.template          import loader, RequestContext
@@ -8,10 +8,6 @@ from .models import Foobar
 
 
 class IndexView(generic.ListView):
-	"""
-	Page with listing all foobar objects
-	"""
-	
 	template_name       = 'first/index.html'
 	context_object_name = 'foobars'
 	
@@ -19,16 +15,18 @@ class IndexView(generic.ListView):
 		return Foobar.objects.all()
 
 
-def edit(request, pk):
-	foobar   = get_object_or_404(Foobar, pk=pk)
-	template = loader.get_template('first/edit.html')
-	context  = RequestContext(request, {
-			'foobar': foobar
-		})
-	return HttpResponse(template.render(context))
+class CreateView(generic.CreateView):
+	model       = Foobar
+	fields      = ['content_text', 'counter']
+	success_url = reverse_lazy('first:index')
 
 
-def update(request, pk):
-	foobar = get_object_or_404(Foobar, pk=pk)
-	print(request.POST['test'])
-	return HttpResponseRedirect(reverse('first:edit', args=(foobar.id,)))
+class UpdateView(generic.UpdateView):
+	model       = Foobar
+	fields      = ['content_text', 'counter']
+	success_url = reverse_lazy('first:index')
+
+
+class DeleteView(generic.DeleteView):
+	model       = Foobar
+	success_url = reverse_lazy('first:index')
