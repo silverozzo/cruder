@@ -1,7 +1,4 @@
-from django.core.urlresolvers import reverse, reverse_lazy
-from django.http              import HttpResponse, HttpResponseRedirect
-from django.shortcuts         import get_object_or_404, render
-from django.template          import loader, RequestContext
+from django.core.urlresolvers import reverse_lazy
 from django.views             import generic
 
 from .models import Foobar
