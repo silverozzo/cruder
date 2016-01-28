@@ -1,7 +1,9 @@
 from django.core.urlresolvers import reverse_lazy
 from django.views             import generic
+from rest_framework           import viewsets
 
-from .models import Foobar
+from .models      import Foobar
+from .serializers import FoobarSerializer
 
 
 class IndexView(generic.ListView):
@@ -27,3 +29,8 @@ class UpdateView(generic.UpdateView):
 class DeleteView(generic.DeleteView):
 	model       = Foobar
 	success_url = reverse_lazy('first:index')
+
+
+class FoobarViewSet(viewsets.ModelViewSet):
+	queryset         = Foobar.objects.all()
+	serializer_class = FoobarSerializer

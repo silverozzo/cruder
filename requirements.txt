@@ -1,2 +1,3 @@
 django-simple-audit
 django==1.8.6
+djangorestframework
