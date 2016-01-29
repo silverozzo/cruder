@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations, models
+import datetime
 
 
 class Migration(migrations.Migration):
@@ -12,8 +13,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='foobar',
-            name='extra_file',
-            field=models.FileField(upload_to='uploads/'),
+            model_name='customuser',
+            name='date_of_birth',
+            field=models.DateField(default=datetime.date.today),
         ),
     ]

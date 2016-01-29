@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.views             import generic
 from rest_framework           import viewsets
 
-from .models      import Foobar
+from .models      import CustomUser, Foobar
 from .serializers import FoobarSerializer
 
 
