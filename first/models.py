@@ -20,6 +20,19 @@ class Foobar(models.Model):
 		return self.content_text + '(' + str(self.id) + ')'
 
 
+class Organization(models.Model):
+	"""
+	Model of organization which can hold a set of users
+	"""
+	class Meta:
+		app_label = 'first'
+	
+	name = models.CharField(max_length=200)
+	
+	def __str__(self):
+		return self.name
+
+
 class CustomUserManager(BaseUserManager):
 	def create_user(self, email, password=None):
 		if not email:
@@ -45,8 +58,9 @@ class CustomUser(AbstractBaseUser):
 		max_length   = 255,
 		unique       = True
 	)
-	is_active = models.BooleanField(default=True)
-	is_admin  = models.BooleanField(default=False)
+	is_active    = models.BooleanField(default=True)
+	is_admin     = models.BooleanField(default=False)
+	organization = models.ForeignKey(Organization, blank=True, default=None, null=True)
 	
 	objects = CustomUserManager()
 	
@@ -74,3 +88,5 @@ class CustomUser(AbstractBaseUser):
 
 
 simple_audit.register(Foobar)
+simple_audit.register(Organization)
+simple_audit.register(CustomUser)
