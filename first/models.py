@@ -33,8 +33,25 @@ class Organization(models.Model):
 		return self.name
 
 
+class Team(models.Model):
+	class Meta:
+		app_label = 'first'
+	
+	name         = models.CharField(max_length=200)
+	organization = models.ForeignKey(Organization)
+	
+	def __str__(self):
+		return self.name
+
+
 class CustomUserManager(BaseUserManager):
+	"""
+	Manger for creating users and superusers
+	"""
 	def create_user(self, email, password=None):
+		"""
+		Creating simple user record
+		"""
 		if not email:
 			raise ValueError('email for users is required')
 		
@@ -45,6 +62,9 @@ class CustomUserManager(BaseUserManager):
 		return user
 	
 	def create_superuser(self, email, password):
+		"""
+		Creating user record with admin permissions
+		"""
 		user = self.create_user(email, password)
 		
 		user.is_admin = True
@@ -53,6 +73,10 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser):
+	"""
+	User model on email authentication identifier
+	Each user can be linked to organization
+	"""
 	email = models.EmailField(
 		verbose_name = 'email address',
 		max_length   = 255,
@@ -87,6 +111,22 @@ class CustomUser(AbstractBaseUser):
 		return self.is_admin
 
 
+class Teammate(models.Model):
+	"""
+	Model of many-to-many link between user and team
+	"""
+	class Meta:
+		app_label = 'first'
+	
+	user = models.ForeignKey(CustomUser)
+	team = models.ForeignKey(Team)
+	
+	def __str__(self):
+		return str(self.team) + ': ' + str(self.user)
+
+
 simple_audit.register(Foobar)
 simple_audit.register(Organization)
+simple_audit.register(Team)
+simple_audit.register(Teammate)
 simple_audit.register(CustomUser)
