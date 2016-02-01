@@ -2,8 +2,9 @@ from django.core.urlresolvers import reverse_lazy
 from django.views             import generic
 from rest_framework           import viewsets
 
-from .models      import CustomUser, Foobar
-from .serializers import FoobarSerializer
+from .models      import CustomUser, Foobar, Organization, Team, Teammate
+from .serializers import (CustomUserSerializer, FoobarSerializer, 
+	OrganizationSerializer, TeamSerializer, TeammateSerializer)
 
 
 class IndexView(generic.ListView):
@@ -34,3 +35,23 @@ class DeleteView(generic.DeleteView):
 class FoobarViewSet(viewsets.ModelViewSet):
 	queryset         = Foobar.objects.all()
 	serializer_class = FoobarSerializer
+
+
+class CustomUserViewSet(viewsets.ModelViewSet):
+	queryset         = CustomUser.objects.all()
+	serializer_class = CustomUserSerializer
+
+
+class OrganizationViewSet(viewsets.ModelViewSet):
+	queryset         = Organization.objects.all()
+	serializer_class = OrganizationSerializer
+
+
+class TeamViewSet(viewsets.ModelViewSet):
+	queryset         = Team.objects.all()
+	serializer_class = TeamSerializer
+
+
+class TeammateViewSet(viewsets.ModelViewSet):
+	queryset         = Teammate.objects.all()
+	serializer_class = TeammateSerializer

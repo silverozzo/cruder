@@ -4,7 +4,11 @@ from rest_framework   import routers
 from . import views
 
 router = routers.DefaultRouter()
-router.register(r'foobar', views.FoobarViewSet)
+router.register(r'foobar',       views.FoobarViewSet)
+router.register(r'customuser',   views.CustomUserViewSet)
+router.register(r'organization', views.OrganizationViewSet)
+router.register(r'team',         views.TeamViewSet)
+router.register(r'teammate',     views.TeammateViewSet)
 
 
 urlpatterns = [
