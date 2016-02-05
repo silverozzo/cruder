@@ -1,6 +1,7 @@
-from django.core.urlresolvers import reverse_lazy
-from django.views             import generic
-from rest_framework           import viewsets
+from django.core.urlresolvers         import reverse_lazy
+from django.views                     import generic
+from rest_framework                   import viewsets
+from restfw_composed_permissions.base import BaseComposePermission
 
 from .models      import CustomUser, Foobar, Organization, Team, Teammate
 from .serializers import (CustomUserSerializer, FoobarSerializer, 

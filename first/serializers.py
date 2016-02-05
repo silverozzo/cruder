@@ -18,7 +18,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 class CustomUserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = CustomUser
-		fields = ['id', 'email', 'is_active', 'is_admin', 'organization']
+		fields = ['id', 'email', 'is_active', 'is_admin', 'is_staff', 'organization']
 
 
 class TeamSerializer(serializers.ModelSerializer):

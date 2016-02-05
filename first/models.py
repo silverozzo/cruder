@@ -28,6 +28,9 @@ class Organization(models.Model):
 	"""
 	class Meta:
 		app_label = 'first'
+		permissions = (
+			('view_organization', 'can view details in admin'),
+		)
 	
 	name = models.CharField(max_length=200)
 	
