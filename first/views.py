@@ -4,7 +4,8 @@ from rest_condition             import ConditionalPermission, Or
 from rest_framework             import viewsets
 
 from .models      import CustomUser, Organization, Team, Teammate
-from .permissions import OrganizationAccessPermission
+from .permissions import (GuardedOrganizationPermission,
+	GuardedTeamPermission, LinkedOrganizationPermission, LinkedTeamPermission)
 from .serializers import (CustomUserSerializer, 
 	OrganizationSerializer, TeamSerializer, TeammateSerializer)
 
@@ -17,12 +18,17 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class OrganizationViewSet(viewsets.ModelViewSet):
 	queryset           = Organization.objects.all()
 	serializer_class   = OrganizationSerializer
-	permission_classes = [OrganizationAccessPermission,]
+	permission_classes = [
+		Or(GuardedOrganizationPermission, LinkedOrganizationPermission),
+	]
 
 
 class TeamViewSet(viewsets.ModelViewSet):
 	queryset         = Team.objects.all()
 	serializer_class = TeamSerializer
+	permission_classes = [
+		Or(GuardedTeamPermission, LinkedTeamPermission),
+	]
 
 
 class TeammateViewSet(viewsets.ModelViewSet):
