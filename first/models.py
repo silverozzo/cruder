@@ -1,25 +1,10 @@
-from django.contrib.auth.models import AbstractBaseUser 
+from django.contrib.auth.models import AbstractBaseUser, Group
 from django.db                  import models
 
 import datetime
 import simple_audit
 
 from .managers import CustomUserManager
-
-
-class Foobar(models.Model):
-	"""
-	Model of foobar entity just for tests and something else.
-	"""
-	class Meta:
-		app_label = 'first'
-	
-	content_text = models.CharField(max_length=200)
-	counter      = models.IntegerField(default=0)
-	extra_file   = models.FileField(upload_to='uploads/', blank=True)
-	
-	def __str__(self):
-		return self.content_text + '(' + str(self.id) + ')'
 
 
 class Organization(models.Model):
@@ -51,8 +36,8 @@ class Team(models.Model):
 
 class CustomUser(AbstractBaseUser):
 	"""
-	User model on email authentication identifier
-	Each user can be linked to organization
+	Custom user model on email authentication identifier.
+	Each user can be linked to organization.
 	"""
 	email = models.EmailField(
 		verbose_name = 'email address',
@@ -61,6 +46,9 @@ class CustomUser(AbstractBaseUser):
 	)
 	is_active    = models.BooleanField(default=True)
 	is_admin     = models.BooleanField(default=False)
+	is_staff     = models.BooleanField(default=True)
+	is_superuser = models.BooleanField(default=False)
+	groups       = models.ManyToManyField(Group)
 	organization = models.ForeignKey(Organization, blank=True, default=None, null=True)
 	
 	objects = CustomUserManager()
@@ -82,27 +70,22 @@ class CustomUser(AbstractBaseUser):
 	
 	def has_module_perms(self, app_label):
 		return True
-	
-	@property
-	def is_staff(self):
-		return self.is_admin
 
 
 class Teammate(models.Model):
 	"""
-	Model of many-to-many link between user and team
+	Model of guys just for holding in DB.
 	"""
 	class Meta:
 		app_label = 'first'
 	
-	user = models.ForeignKey(CustomUser)
-	team = models.ForeignKey(Team)
+	fullname = models.CharField(max_length=200, default='', blank=True)
+	team     = models.ForeignKey(Team)
 	
 	def __str__(self):
-		return str(self.team) + ': ' + str(self.user)
+		return self.fullname + ' (' + str(self.team) + ')'
 
 
-simple_audit.register(Foobar)
 simple_audit.register(Organization)
 simple_audit.register(Team)
 simple_audit.register(Teammate)

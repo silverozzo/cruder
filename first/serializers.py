@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from .models import Foobar, Organization, CustomUser, Team, Teammate
-
-
-class FoobarSerializer(serializers.ModelSerializer):
-	class Meta:
-		model  = Foobar
-		fields = ['id', 'content_text', 'counter']
+from .models import CustomUser, Organization, Team, Teammate
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -30,4 +24,4 @@ class TeamSerializer(serializers.ModelSerializer):
 class TeammateSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Teammate
-		fields = ['id', 'user', 'team']
+		fields = ['id', 'fullname', 'team']

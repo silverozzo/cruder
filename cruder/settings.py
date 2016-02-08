@@ -40,7 +40,15 @@ INSTALLED_APPS = (
     'first',
     'simple_audit',
     'rest_framework',
+    'guardian',
 )
+
+AUTHENTICATION_BACKENDS = (
+	'django.contrib.auth.backends.ModelBackend',
+	'guardian.backends.ObjectPermissionBackend',
+)
+
+ANONYMOUS_USER_ID = -1
 
 AUTH_USER_MODEL = 'first.CustomUser'
 
@@ -58,7 +66,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-#    'first.middleware.AuthorityMiddleware',
     'simple_audit.middleware.TrackingRequestOnThreadLocalMiddleware',
 )
 
