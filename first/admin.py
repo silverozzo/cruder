@@ -64,12 +64,24 @@ class UserAdmin(BaseUserAdmin):
 
 
 class OrganizationAdmin(GuardedModelAdmin):
-	list_display        = ('name',)
-	search_fields       = ('name',)
-	ordering            = ('name',)
+	list_display  = ('name',)
+	search_fields = ('name',)
+	ordering      = ('name',)
 
 
+class TeamAdmin(GuardedModelAdmin):
+	list_display  = ('name', 'organization')
+	search_fields = ('name',)
+	ordering      = ('organization',)
+
+
+class TeammateAdmin(GuardedModelAdmin):
+	list_display  = ('fullname', 'team')
+	search_fields = ('fullname',)
+	ordering      = ('team', 'fullname')
+
+
+admin.site.register(CustomUser,   UserAdmin)
 admin.site.register(Organization, OrganizationAdmin)
-admin.site.register(Team)
-admin.site.register(Teammate)
-admin.site.register(CustomUser, UserAdmin)
+admin.site.register(Team,         TeamAdmin)
+admin.site.register(Teammate,     TeammateAdmin)

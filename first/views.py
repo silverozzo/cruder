@@ -2,9 +2,9 @@ from django.core.urlresolvers   import reverse_lazy
 from django.views               import generic
 from rest_condition             import ConditionalPermission, Or
 from rest_framework             import viewsets
-from rest_framework.permissions import BasePermission
 
 from .models      import CustomUser, Organization, Team, Teammate
+from .permissions import OrganizationAccessPermission
 from .serializers import (CustomUserSerializer, 
 	OrganizationSerializer, TeamSerializer, TeammateSerializer)
 
@@ -15,8 +15,9 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
-	queryset         = Organization.objects.all()
-	serializer_class = OrganizationSerializer
+	queryset           = Organization.objects.all()
+	serializer_class   = OrganizationSerializer
+	permission_classes = [OrganizationAccessPermission,]
 
 
 class TeamViewSet(viewsets.ModelViewSet):

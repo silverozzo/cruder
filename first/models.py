@@ -12,9 +12,9 @@ class Organization(models.Model):
 	Model of organization which can hold a set of users
 	"""
 	class Meta:
-		app_label = 'first'
+		app_label   = 'first'
 		permissions = (
-			('view_organization', 'can view details in admin'),
+			('view_organization', 'Can view organization'),
 		)
 	
 	name = models.CharField(max_length=200)
@@ -66,6 +66,7 @@ class CustomUser(AbstractBaseUser):
 		return self.email
 	
 	def has_perm(self, perm, obj=None):
+		print('user permission called')
 		return True
 	
 	def has_module_perms(self, app_label):
