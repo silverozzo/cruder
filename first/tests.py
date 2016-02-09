@@ -2,6 +2,7 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import Permission
 from django.http                import HttpRequest
 from django.test                import TestCase
+from guardian.shortcuts         import assign_perm
 
 from .models import CustomUser, Organization
 from .admin  import OrganizationAdmin
@@ -28,8 +29,8 @@ def creating_superuser(organization=None):
 	return user
 
 
-def creating_first_organization():
-	company = Organization(name='first')
+def creating_first_organization(name='first'):
+	company = Organization(name=name)
 	company.save()
 	
 	return company
@@ -66,6 +67,14 @@ class AuthorizationContribTests(TestCase):
 		self.assertEqual(user.has_perm('first.add_organization'), True)
 
 
+class GuardianTests(TestCase):
+	def test_assign_object_permission(self):
+		company = creating_first_organization()
+		user    = creating_staff_user()
+		assign_perm('first.view_organization', user, company)
+		self.assertEqual(user.has_perm('first.view_organization', company), True)
+
+
 class AdminAccessTests(TestCase):
 	def setUp(self):
 		self.site = AdminSite()
@@ -81,7 +90,7 @@ class AdminAccessTests(TestCase):
 		user    = creating_staff_user()
 		admin   = OrganizationAdmin(Organization, self.site)
 		request = make_request_with_user(user)
-		self.assertEqual(admin.get_queryset(request).count(), 0)
+		self.assertEqual(len(admin.get_queryset(request)), 0)
 	
 	def test_empty_organization_list_by_superuser(self):
 		user      = creating_superuser()
@@ -101,4 +110,29 @@ class AdminAccessTests(TestCase):
 		fullcount = Organization.objects.all().count()
 		
 		self.assertEqual(allowed, fullcount)
-
+	
+	def test_simple_organization_list_by_linked_staffuser(self):
+		company = creating_first_organization()
+		user    = creating_staff_user(company)
+		admin   = OrganizationAdmin(Organization, self.site)
+		request = make_request_with_user(user)
+		self.assertEqual(len(admin.get_queryset(request)), 1)
+	
+	def test_simple_organization_list_by_staffuser_with_view_permission(self):
+		company = creating_first_organization()
+		user    = creating_staff_user()
+		assign_perm('first.view_organization', user, company)
+		
+		request = make_request_with_user(user)
+		admin   = OrganizationAdmin(Organization, self.site)
+		self.assertEqual(len(admin.get_queryset(request)), 1)
+	
+	def test_simple_organization_list_by_linked_staffuser_with_view_permission(self):
+		company = creating_first_organization()
+		second  = creating_first_organization('second')
+		user    = creating_staff_user(company)
+		assign_perm('first.view_organization', user, second)
+		
+		request = make_request_with_user(user)
+		admin   = OrganizationAdmin(Organization, self.site)
+		self.assertEqual(len(admin.get_queryset(request)), 2)

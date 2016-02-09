@@ -5,6 +5,9 @@ from django.contrib.auth.forms  import ReadOnlyPasswordHashField
 from django.contrib.auth.models import Group, Permission
 from guardian.admin             import GuardedModelAdmin
 from guardian.decorators        import permission_required_or_403
+from guardian.shortcuts         import get_objects_for_user
+
+from django.db.models.query import QuerySet
 
 from rest_condition             import ConditionalPermission, Or
 
@@ -77,10 +80,12 @@ class OrganizationAdmin(GuardedModelAdmin):
 		if request.user.is_superuser:
 			return result
 		
-		if not request.user.organization:
-			return result.none()
+		allowed     = get_objects_for_user(request.user, 'first.view_organization', accept_global_perms=False)
+		allowed_ids = map(lambda x: x.pk, allowed)
+		if request.user.organization:
+			allowed_ids.append(request.user.organization.pk)
 		
-		return result.filter(pk=request.user.organization.pk)
+		return result.filter(pk__in=allowed_ids)
 
 
 class TeamAdmin(GuardedModelAdmin):
