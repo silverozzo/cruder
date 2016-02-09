@@ -2,10 +2,16 @@ from django                     import forms
 from django.contrib             import admin
 from django.contrib.auth.admin  import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms  import ReadOnlyPasswordHashField
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from guardian.admin             import GuardedModelAdmin
+from guardian.decorators        import permission_required_or_403
+
+from rest_condition             import ConditionalPermission, Or
 
 from .models import CustomUser, Organization, Team, Teammate
+
+from .permissions import (GuardedOrganizationPermission,
+	GuardedTeamPermission, LinkedOrganizationPermission, LinkedTeamPermission)
 
 
 class UserCreationForm(forms.ModelForm):
@@ -36,7 +42,7 @@ class UserChangeForm(forms.ModelForm):
 	
 	class Meta:
 		model  = CustomUser
-		fields = ('email', 'password', 'is_active', 'is_admin', 'organization', 'groups')
+		fields = ('email', 'password', 'is_active', 'organization', 'groups', 'user_permissions')
 	
 	def clean_password(self):
 		return self.initial['password']
@@ -46,11 +52,10 @@ class UserAdmin(BaseUserAdmin):
 	form     = UserChangeForm
 	add_form = UserCreationForm
 	
-	list_display  = ('email', 'is_staff', 'is_admin', 'is_superuser', 'organization')
-	list_filter   = ('is_admin',)
+	list_display  = ('email', 'is_staff', 'is_superuser', 'organization')
 	fieldsets     = (
-		(None,           {'fields': ('email', 'password', 'is_staff', 'is_admin', 'is_superuser', 'organization', 'groups')}),
-		('persmissions', {'fields': ('is_admin',)}),
+		(None,           {'fields': ('email', 'password', 'is_staff', 'is_superuser', 'organization', 'groups', 'user_permissions')}),
+		('persmissions', {'fields': ('is_staff',)}),
 	)
 	add_fieldsets = (
 		(None, {
@@ -60,13 +65,22 @@ class UserAdmin(BaseUserAdmin):
 	)
 	search_fields = ('email',)
 	ordering      = ('email',)
-	filter_horizontal = ()
 
 
 class OrganizationAdmin(GuardedModelAdmin):
 	list_display  = ('name',)
 	search_fields = ('name',)
 	ordering      = ('name',)
+	
+	def get_queryset(self, request):
+		result = super(OrganizationAdmin, self).get_queryset(request)
+		if request.user.is_superuser:
+			return result
+		
+		if not request.user.organization:
+			return result.none()
+		
+		return result.filter(pk=request.user.organization.pk)
 
 
 class TeamAdmin(GuardedModelAdmin):
@@ -85,3 +99,5 @@ admin.site.register(CustomUser,   UserAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Team,         TeamAdmin)
 admin.site.register(Teammate,     TeammateAdmin)
+
+admin.site.register(Permission)

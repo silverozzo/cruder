@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser, Group
+from django.contrib.auth.models import AbstractBaseUser, Group, Permission, PermissionsMixin
 from django.db                  import models
 
 import datetime
@@ -34,7 +34,7 @@ class Team(models.Model):
 		return self.name
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
 	"""
 	Custom user model on email authentication identifier.
 	Each user can be linked to organization.
@@ -44,12 +44,9 @@ class CustomUser(AbstractBaseUser):
 		max_length   = 255,
 		unique       = True
 	)
-	is_active    = models.BooleanField(default=True)
-	is_admin     = models.BooleanField(default=False)
-	is_staff     = models.BooleanField(default=True)
-	is_superuser = models.BooleanField(default=False)
-	groups       = models.ManyToManyField(Group)
-	organization = models.ForeignKey(Organization, blank=True, default=None, null=True)
+	is_active        = models.BooleanField(default=True)
+	is_staff         = models.BooleanField(default=True)
+	organization     = models.ForeignKey(Organization, blank=True, default=None, null=True)
 	
 	objects = CustomUserManager()
 	
@@ -64,13 +61,6 @@ class CustomUser(AbstractBaseUser):
 	
 	def get_short_name(self):
 		return self.email
-	
-	def has_perm(self, perm, obj=None):
-		print('user permission called')
-		return True
-	
-	def has_module_perms(self, app_label):
-		return True
 
 
 class Teammate(models.Model):
@@ -87,7 +77,7 @@ class Teammate(models.Model):
 		return self.fullname + ' (' + str(self.team) + ')'
 
 
+simple_audit.register(CustomUser)
 simple_audit.register(Organization)
 simple_audit.register(Team)
 simple_audit.register(Teammate)
-simple_audit.register(CustomUser)
