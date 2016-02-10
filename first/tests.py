@@ -4,9 +4,9 @@ from django.http                import HttpRequest
 from django.test                import TestCase
 from guardian.shortcuts         import assign_perm
 
-from .models      import CustomUser, Organization
+from .models      import CustomUser, Organization, Team
 from .admin       import OrganizationAdmin
-from .permissions import OrganizationAccess
+from .permissions import OrganizationAccess, TeamAccess
 
 
 def creating_staff_user(organization=None):
@@ -30,11 +30,21 @@ def creating_superuser(organization=None):
 	return user
 
 
-def creating_first_organization(name='first'):
+def creating_organization(name='first'):
 	company = Organization(name=name)
 	company.save()
 	
 	return company
+
+
+def creating_team(organization, teamname = 'foobar'):
+	team = Team(
+		name         = teamname,
+		organization = organization
+	)
+	team.save()
+	
+	return team
 
 
 def make_request_with_user(user):
@@ -70,10 +80,17 @@ class AuthorizationContribTests(TestCase):
 
 class GuardianTests(TestCase):
 	def test_assign_object_permission(self):
-		company = creating_first_organization()
+		company = creating_organization()
 		user    = creating_staff_user()
 		assign_perm('first.view_organization', user, company)
 		self.assertEqual(user.has_perm('first.view_organization', company), True)
+	
+	def test_assign_global_permission(self):
+		company = creating_organization()
+		user    = creating_staff_user()
+		assign_perm('first.view_organization', user)
+		self.assertEqual(user.has_perm('first.view_organization'), True)
+		self.assertEqual(user.has_perm('first.view_organization', company), False)
 
 
 class AdminAccessTests(TestCase):
@@ -87,7 +104,7 @@ class AdminAccessTests(TestCase):
 		self.assertEqual(admin.get_queryset(request).count(), 0)
 	
 	def test_simple_organization_list_by_staffuser(self):
-		fake    = creating_first_organization()
+		fake    = creating_organization()
 		user    = creating_staff_user()
 		admin   = OrganizationAdmin(Organization, self.site)
 		request = make_request_with_user(user)
@@ -101,7 +118,7 @@ class AdminAccessTests(TestCase):
 		self.assertEqual(allowed, 0)
 	
 	def test_simple_organization_list_by_superuser(self):
-		fake      = creating_first_organization()
+		fake      = creating_organization()
 		user      = creating_superuser()
 		admin     = OrganizationAdmin(Organization, self.site)
 		request   = make_request_with_user(user)
@@ -110,14 +127,14 @@ class AdminAccessTests(TestCase):
 		self.assertEqual(allowed, fullcount)
 	
 	def test_simple_organization_list_by_linked_staffuser(self):
-		company = creating_first_organization()
+		company = creating_organization()
 		user    = creating_staff_user(company)
 		admin   = OrganizationAdmin(Organization, self.site)
 		request = make_request_with_user(user)
 		self.assertEqual(admin.get_queryset(request).count(), 1)
 	
 	def test_simple_organization_list_by_staffuser_with_view_permission(self):
-		company = creating_first_organization()
+		company = creating_organization()
 		user    = creating_staff_user()
 		assign_perm('first.view_organization', user, company)
 		
@@ -126,8 +143,8 @@ class AdminAccessTests(TestCase):
 		self.assertEqual(admin.get_queryset(request).count(), 1)
 	
 	def test_simple_organization_list_by_linked_staffuser_with_view_permission(self):
-		company = creating_first_organization()
-		second  = creating_first_organization('second')
+		company = creating_organization()
+		second  = creating_organization('second')
 		user    = creating_staff_user(company)
 		assign_perm('first.view_organization', user, second)
 		
@@ -143,14 +160,14 @@ class OrganizationAccessTests(TestCase):
 		self.assertEqual(len(check), 0)
 	
 	def test_get_list_by_linked_staffuser(self):
-		company = creating_first_organization()
+		company = creating_organization()
 		user    = creating_staff_user(company)
 		check   = OrganizationAccess.queryset(user)
 		self.assertEqual(len(check), 1)
 	
 	def test_get_list_by_staffuser_with_perm(self):
-		first  = creating_first_organization('first')
-		second = creating_first_organization('second')
+		first  = creating_organization('first')
+		second = creating_organization('second')
 		user   = creating_staff_user()
 		assign_perm('first.view_organization', user, first)
 		assign_perm('first.view_organization', user, second)
@@ -159,9 +176,10 @@ class OrganizationAccessTests(TestCase):
 		self.assertEqual(len(check), 2)
 	
 	def test_get_list_by_linked_staffuser_with_perm(self):
-		first  = creating_first_organization('first')
-		second = creating_first_organization('second')
-		user   = creating_staff_user(first)
+		first  = creating_organization('first')
+		second = creating_organization('second')
+		third  = creating_organization('third')
+		user   = creating_staff_user(third)
 		assign_perm('first.view_organization', user, first)
 		assign_perm('first.view_organization', user, second)
 		
@@ -176,8 +194,141 @@ class OrganizationAccessTests(TestCase):
 		self.assertEqual(len(check), 0)
 	
 	def test_get_simple_list_by_superuser(self):
-		first  = creating_first_organization('first')
-		second = creating_first_organization('second')
+		first  = creating_organization('first')
+		second = creating_organization('second')
 		user   = creating_superuser()
 		check  = OrganizationAccess.queryset(user)
 		self.assertEqual(len(check), 2)
+	
+	def test_changing_by_staffuser(self):
+		company = creating_organization()
+		user    = creating_staff_user()
+		check   = OrganizationAccess.can_change(user, company)
+		self.assertEqual(check, False)
+	
+	def test_changing_by_linked_staffuser(self):
+		company = creating_organization()
+		user    = creating_staff_user(company)
+		assign_perm('first.change_organization', user)
+		
+		self.assertEqual(True, OrganizationAccess.can_change(user, company))
+	
+	def test_changing_by_linked_staffuser_with_perm(self):
+		first  = creating_organization('first')
+		second = creating_organization('second')
+		user   = creating_staff_user(first)
+		assign_perm('first.change_organization', user)
+		assign_perm('first.change_organization', user, second)
+		
+		self.assertEqual(False, OrganizationAccess.can_change(user, first))
+		self.assertEqual(True,  OrganizationAccess.can_change(user, second))
+
+
+class TeamAccessTests(TestCase):
+	
+	def test_get_empty_list_by_staffuser(self):
+		user = creating_staff_user()
+		self.assertEqual(0, len(TeamAccess.queryset(user)))
+	
+	def test_get_simple_list_by_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user()
+		self.assertEqual(0, len(TeamAccess.queryset(user)))
+	
+	def test_get_simple_list_by_linked_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user(company)
+		assign_perm('first.view_team', user)
+		
+		self.assertEqual(1, len(TeamAccess.queryset(user)))
+	
+	def test_get_simple_list_by_linked_staffuser_with_perm(self):
+		first       = creating_organization('first')
+		first_team  = creating_team(first, 'first team')
+		second      = creating_organization('second')
+		second_team = creating_team(second, 'second team')
+		user        = creating_staff_user(first)
+		assign_perm('first.view_team', user)
+		
+		check = TeamAccess.queryset(user)
+		self.assertEqual(1, len(check))
+		self.assertEqual(True, first_team in check)
+	
+	def test_get_simple_list_by_linked_staffuser_with_perm(self):
+		first       = creating_organization('first')
+		first_team  = creating_team(first, 'first team')
+		second      = creating_organization('second')
+		second_team = creating_team(second, 'second team')
+		user        = creating_staff_user(first)
+		assign_perm('first.view_team', user)
+		assign_perm('first.view_organization', user, second)
+		
+		check = TeamAccess.queryset(user)
+		self.assertEqual(1, len(check))
+		self.assertEqual(True, second_team in check)
+	
+	def test_get_empty_list_by_superuser(self):
+		user = creating_superuser()
+		self.assertEqual(0, len(TeamAccess.queryset(user)))
+	
+	def test_get_simple_list_by_superuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_superuser()
+		self.assertEqual(1, len(TeamAccess.queryset(user)))
+	
+	def test_changing_by_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user()
+		self.assertEqual(False, TeamAccess.can_change(user, team))
+	
+	def test_changing_by_linked_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user(company)
+		self.assertEqual(False, TeamAccess.can_change(user, team))
+	
+	def test_changing_by_linked_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user(company)
+		assign_perm('first.change_team', user)
+		self.assertEqual(True, TeamAccess.can_change(user, team))
+	
+	def test_changing_by_linked_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user()
+		assign_perm('first.change_team', user)
+		assign_perm('first.view_organization', user, company)
+		self.assertEqual(True, TeamAccess.can_change(user, team))
+	
+	def test_deleting_by_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user()
+		self.assertEqual(False, TeamAccess.can_delete(user, team))
+	
+	def test_deleting_by_linked_staffuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user(company)
+		assign_perm('first.delete_team', user)
+		self.assertEqual(True, TeamAccess.can_delete(user, team))
+	
+	def test_deleting_by_staffuser_with_perm(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_staff_user()
+		assign_perm('first.delete_team', user)
+		assign_perm('first.view_organization', user, company)
+		self.assertEqual(True, TeamAccess.can_delete(user, team))
+	
+	def test_deleting_by_superuser(self):
+		company = creating_organization()
+		team    = creating_team(company)
+		user    = creating_superuser()
+		self.assertEqual(True, TeamAccess.can_delete(user, team))

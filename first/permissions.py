@@ -25,38 +25,75 @@ class OrganizationAccess:
 	def can_change(user, obj=None):
 		if user.is_superuser:
 			return True
-		
-		if user.has_perm('first.change_organization') and request.user.has_perm('first.change_organization', obj):
+		if not user.has_perm('first.change_organization'):
+			return False
+		if not bool(obj):
 			return True
 		
-		return user.organization and obj and user.organization.pk == obj.pk
+		allowed = get_objects_for_user(user, 'first.change_organization', accept_global_perms=False)
+		if allowed.exists() and obj in allowed:
+			return True
+		if allowed.exists() and obj not in allowed:
+			return False
+		
+		return bool(user.organization) and bool(obj) and user.organization.pk == obj.pk
 	
 	@staticmethod
 	def can_delete(user, obj=None):
 		if user.is_superuser:
 			return True
 		
-		if user.has_perm('first.delete_organization') and request.user.has_perm('first.delete_organization', obj):
+		if user.has_perm('first.delete_organization') and user.has_perm('first.delete_organization', obj):
 			return True
 		
-		return user.organization and obj and user.organization.pk == obj.pk
+		return False
 
 
 class TeamAccess:
 	@staticmethod
 	def queryset(user, original_queryset=None):
+		queryset = original_queryset or Team.objects.all()
 		if user.is_superuser:
-			return original_queryset or Team.objects.all()
+			return queryset
 		
-		return original_queryset or Team.objects.all()
+		if not user.has_perm('first.view_team'):
+			return queryset.none()
+		
+		allowed = get_objects_for_user(user, 'first.view_organization', accept_global_perms=False)
+		if allowed.exists():
+			return queryset.filter(organization__in=allowed.values_list('pk', flat=True))
+		
+		return queryset.filter(organization=user.organization)
 	
 	@staticmethod
 	def can_change(user, obj=None):
-		return True
+		if user.is_superuser:
+			return True
+		if not user.has_perm('first.change_team'):
+			return False
+		if not bool(obj):
+			return True
+		
+		allowed = get_objects_for_user(user, 'first.view_organization', accept_global_perms=False)
+		if allowed.exists():
+			return obj.organization in allowed
+		
+		return user.organization and user.organization == obj.organization
 	
 	@staticmethod
 	def can_delete(user, obj=None):
-		return True
+		if user.is_superuser:
+			return True
+		if not user.has_perm('first.delete_team'):
+			return False
+		if not bool(obj):
+			return True
+		
+		allowed = get_objects_for_user(user, 'first.view_organization', accept_global_perms=False)
+		if allowed.exists():
+			return obj.organization in allowed
+		
+		return user.organization and user.organization == obj.organization
 
 
 class TeammateAccess:

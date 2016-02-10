@@ -19,10 +19,10 @@ class OrganizationAdmin(GuardedModelAdmin):
 		return OrganizationAccess.queryset(request.user, super(OrganizationAdmin, self).get_queryset(request))
 	
 	def has_change_permission(self, request, obj=None):
-		return OrganizationAccess.can_change(requesr.user, obj)
+		return OrganizationAccess.can_change(request.user, obj)
 	
 	def has_delete_permission(self, request, obj=None):
-		return OrganizationAccess.can_delete(requesr.user, obj)
+		return OrganizationAccess.can_delete(request.user, obj)
 
 
 class TeamAdmin(GuardedModelAdmin):
