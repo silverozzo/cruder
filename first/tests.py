@@ -90,16 +90,14 @@ class AdminAccessTests(TestCase):
 		user    = creating_staff_user()
 		admin   = OrganizationAdmin(Organization, self.site)
 		request = make_request_with_user(user)
-		self.assertEqual(len(admin.get_queryset(request)), 0)
+		self.assertEqual(admin.get_queryset(request).count(), 0)
 	
 	def test_empty_organization_list_by_superuser(self):
 		user      = creating_superuser()
 		admin     = OrganizationAdmin(Organization, self.site)
 		request   = make_request_with_user(user)
 		allowed   = admin.get_queryset(request).count()
-		fullcount = Organization.objects.all().count()
-		
-		self.assertEqual(allowed, fullcount)
+		self.assertEqual(allowed, 0)
 	
 	def test_simple_organization_list_by_superuser(self):
 		fake      = creating_first_organization()
@@ -108,7 +106,6 @@ class AdminAccessTests(TestCase):
 		request   = make_request_with_user(user)
 		allowed   = admin.get_queryset(request).count()
 		fullcount = Organization.objects.all().count()
-		
 		self.assertEqual(allowed, fullcount)
 	
 	def test_simple_organization_list_by_linked_staffuser(self):
@@ -116,7 +113,7 @@ class AdminAccessTests(TestCase):
 		user    = creating_staff_user(company)
 		admin   = OrganizationAdmin(Organization, self.site)
 		request = make_request_with_user(user)
-		self.assertEqual(len(admin.get_queryset(request)), 1)
+		self.assertEqual(admin.get_queryset(request).count(), 1)
 	
 	def test_simple_organization_list_by_staffuser_with_view_permission(self):
 		company = creating_first_organization()
@@ -125,7 +122,7 @@ class AdminAccessTests(TestCase):
 		
 		request = make_request_with_user(user)
 		admin   = OrganizationAdmin(Organization, self.site)
-		self.assertEqual(len(admin.get_queryset(request)), 1)
+		self.assertEqual(admin.get_queryset(request).count(), 1)
 	
 	def test_simple_organization_list_by_linked_staffuser_with_view_permission(self):
 		company = creating_first_organization()
@@ -135,4 +132,5 @@ class AdminAccessTests(TestCase):
 		
 		request = make_request_with_user(user)
 		admin   = OrganizationAdmin(Organization, self.site)
-		self.assertEqual(len(admin.get_queryset(request)), 2)
+		self.assertEqual(len(admin.get_queryset(request)), 1)
+	
