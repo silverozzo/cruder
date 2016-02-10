@@ -39,7 +39,38 @@ class OrganizationAccess:
 		if user.has_perm('first.delete_organization') and request.user.has_perm('first.delete_organization', obj):
 			return True
 		
-		return user.organization and user.organization.pk == obj.pk
+		return user.organization and obj and user.organization.pk == obj.pk
+
+
+class TeamAccess:
+	@staticmethod
+	def queryset(user, original_queryset=None):
+		if user.is_superuser:
+			return original_queryset or Team.objects.all()
+		
+		return original_queryset or Team.objects.all()
+	
+	@staticmethod
+	def can_change(user, obj=None):
+		return True
+	
+	@staticmethod
+	def can_delete(user, obj=None):
+		return True
+
+
+class TeammateAccess:
+	@staticmethod
+	def queryset(user, original_queryset=None):
+		return original_queryset or Teammate.objects.all()
+	
+	@staticmethod
+	def can_change(user, obj=None):
+		return True
+	
+	@staticmethod
+	def can_delete(user, obj=None):
+		return True
 
 
 class GuardedOrganizationPermission(BasePermission):

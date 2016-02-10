@@ -4,8 +4,9 @@ from django.http                import HttpRequest
 from django.test                import TestCase
 from guardian.shortcuts         import assign_perm
 
-from .models import CustomUser, Organization
-from .admin  import OrganizationAdmin
+from .models      import CustomUser, Organization
+from .admin       import OrganizationAdmin
+from .permissions import OrganizationAccess
 
 
 def creating_staff_user(organization=None):
@@ -132,5 +133,51 @@ class AdminAccessTests(TestCase):
 		
 		request = make_request_with_user(user)
 		admin   = OrganizationAdmin(Organization, self.site)
-		self.assertEqual(len(admin.get_queryset(request)), 1)
+		self.assertEqual(admin.get_queryset(request).count(), 1)
+
+
+class OrganizationAccessTests(TestCase):
+	def test_get_list_by_staffuser(self):
+		user  = creating_staff_user()
+		check = OrganizationAccess.queryset(user)
+		self.assertEqual(len(check), 0)
 	
+	def test_get_list_by_linked_staffuser(self):
+		company = creating_first_organization()
+		user    = creating_staff_user(company)
+		check   = OrganizationAccess.queryset(user)
+		self.assertEqual(len(check), 1)
+	
+	def test_get_list_by_staffuser_with_perm(self):
+		first  = creating_first_organization('first')
+		second = creating_first_organization('second')
+		user   = creating_staff_user()
+		assign_perm('first.view_organization', user, first)
+		assign_perm('first.view_organization', user, second)
+		
+		check  = OrganizationAccess.queryset(user)
+		self.assertEqual(len(check), 2)
+	
+	def test_get_list_by_linked_staffuser_with_perm(self):
+		first  = creating_first_organization('first')
+		second = creating_first_organization('second')
+		user   = creating_staff_user(first)
+		assign_perm('first.view_organization', user, first)
+		assign_perm('first.view_organization', user, second)
+		
+		check  = OrganizationAccess.queryset(user)
+		self.assertEqual(len(check), 2)
+		self.assertEqual(first in check, True)
+		self.assertEqual(second in check, True)
+	
+	def test_get_empty_list_by_superuser(self):
+		user  = creating_superuser()
+		check = OrganizationAccess.queryset(user)
+		self.assertEqual(len(check), 0)
+	
+	def test_get_simple_list_by_superuser(self):
+		first  = creating_first_organization('first')
+		second = creating_first_organization('second')
+		user   = creating_superuser()
+		check  = OrganizationAccess.queryset(user)
+		self.assertEqual(len(check), 2)

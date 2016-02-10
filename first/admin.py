@@ -7,26 +7,7 @@ from rest_condition             import ConditionalPermission, Or
 
 from .forms       import UserChangeForm, UserCreationForm
 from .models      import CustomUser, Organization, Team, Teammate
-from .permissions import OrganizationAccess
-
-
-class UserAdmin(BaseUserAdmin):
-	form     = UserChangeForm
-	add_form = UserCreationForm
-	
-	list_display  = ('email', 'is_staff', 'is_superuser', 'organization')
-	fieldsets     = (
-		(None,           {'fields': ('email', 'password', 'is_staff', 'is_superuser', 'organization', 'groups', 'user_permissions')}),
-		('persmissions', {'fields': ('is_staff',)}),
-	)
-	add_fieldsets = (
-		(None, {
-			'classes': ('wide',),
-			'fields' : ('email', 'password1', 'password2', 'organization'),
-		}),
-	)
-	search_fields = ('email',)
-	ordering      = ('email',)
+from .permissions import OrganizationAccess, TeamAccess, TeammateAccess
 
 
 class OrganizationAdmin(GuardedModelAdmin):
@@ -50,14 +31,47 @@ class TeamAdmin(GuardedModelAdmin):
 	ordering      = ('organization',)
 	
 	def get_queryset(self, request):
-		if request.user.is_superuser:
-			return super(TeamAdmin, self).get_queryset(request)
+		return TeamAccess.queryset(request.user, super(TeamAdmin, self).get_queryset(request))
+	
+	def has_change_permission(self, request, obj=None):
+		return TeamAccess.can_change(request.user, obj)
+	
+	def has_delete_permission(self, request, obj=None):
+		return TeamAccess.can_delete(request.user, obj)
 
 
 class TeammateAdmin(GuardedModelAdmin):
 	list_display  = ('fullname', 'team')
 	search_fields = ('fullname',)
 	ordering      = ('team', 'fullname')
+	
+	def get_queryset(self, request):
+		return TeammateAccess.queryset(request.user, super(TeammateAdmin, self).get_queryset(request))
+	
+	def has_change_permission(self, request, obj=None):
+		return TeammateAccess.can_change(request.user, obj)
+	
+	def has_delete_permission(self, request, obj=None):
+		return TeammateAccess.can_delete(request.user, obj)
+
+
+class UserAdmin(BaseUserAdmin):
+	form     = UserChangeForm
+	add_form = UserCreationForm
+	
+	list_display  = ('email', 'is_staff', 'is_superuser', 'organization')
+	fieldsets     = (
+		(None,           {'fields': ('email', 'password', 'is_staff', 'is_superuser', 'organization', 'groups', 'user_permissions')}),
+		('persmissions', {'fields': ('is_staff',)}),
+	)
+	add_fieldsets = (
+		(None, {
+			'classes': ('wide',),
+			'fields' : ('email', 'password1', 'password2', 'organization'),
+		}),
+	)
+	search_fields = ('email',)
+	ordering      = ('email',)
 
 
 admin.site.register(CustomUser,   UserAdmin)

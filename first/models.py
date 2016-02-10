@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, Group, Permission, PermissionsMixin
 from django.db                  import models
 
-import datetime
 import simple_audit
 
 from .managers import CustomUserManager
@@ -13,9 +12,7 @@ class Organization(models.Model):
 	"""
 	class Meta:
 		app_label   = 'first'
-		permissions = (
-			('view_organization', 'Can view organization'),
-		)
+		permissions = (('view_organization', 'Can view organization'),)
 	
 	name = models.CharField(max_length=200)
 	
@@ -24,14 +21,34 @@ class Organization(models.Model):
 
 
 class Team(models.Model):
+	"""
+	Model of the team which holds some persons
+	"""
 	class Meta:
-		app_label = 'first'
+		app_label   = 'first'
+		permissions = (('view_team', 'Can view team'),)
 	
 	name         = models.CharField(max_length=200)
 	organization = models.ForeignKey(Organization)
 	
 	def __str__(self):
 		return self.name
+
+
+class Teammate(models.Model):
+	"""
+	Model of guys just for holding in DB.
+	"""
+	class Meta:
+		app_label   = 'first'
+		permissions = (('view_teammate', 'Can view teammates'),)
+	
+	fullname = models.CharField(max_length=200, default='', blank=True)
+	team     = models.ForeignKey(Team)
+	
+	def __str__(self):
+		return self.fullname + ' (' + str(self.team) + ')'
+
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -61,20 +78,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 	
 	def get_short_name(self):
 		return self.email
-
-
-class Teammate(models.Model):
-	"""
-	Model of guys just for holding in DB.
-	"""
-	class Meta:
-		app_label = 'first'
-	
-	fullname = models.CharField(max_length=200, default='', blank=True)
-	team     = models.ForeignKey(Team)
-	
-	def __str__(self):
-		return self.fullname + ' (' + str(self.team) + ')'
 
 
 simple_audit.register(CustomUser)
