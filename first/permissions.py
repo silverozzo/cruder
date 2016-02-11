@@ -99,15 +99,51 @@ class TeamAccess:
 class TeammateAccess:
 	@staticmethod
 	def queryset(user, original_queryset=None):
-		return original_queryset or Teammate.objects.all()
+		queryset = original_queryset or Teammate.objects.all()
+		if user.is_superuser:
+			return queryset
+		
+		if not user.has_perm('first.view_teammate'):
+			return queryset.none()
+		
+		allowed = get_objects_for_user(user, 'first.view_organization', accept_global_perms=False)
+		if allowed.exists():
+			return queryset.filter(team__organization__in=allowed.values_list('pk', flat=True))
+		
+		if not user.organization:
+			return queryset.none()
+		
+		return queryset.filter(team__organization=user.organization)
 	
 	@staticmethod
 	def can_change(user, obj=None):
-		return True
+		if user.is_superuser:
+			return True
+		if not user.has_perm('first.change_teammate'):
+			return False
+		if not obj:
+			return True
+		
+		allowed = get_objects_for_user(user, 'first.view_organization', accept_global_perms=False)
+		if allowed.exists():
+			return obj.team.organization in allowed
+		
+		return user.organization and obj.team.organization == user.organization
 	
 	@staticmethod
 	def can_delete(user, obj=None):
-		return True
+		if user.is_superuser:
+			return True
+		if not user.has_perm('first.delete_teammate'):
+			return False
+		if not bool(obj):
+			return True
+		
+		allowed = get_objects_for_user(user, 'first.view_organization', accept_global_perms=False)
+		if allowed.exists():
+			return obj.team.organization in allowed
+		
+		return user.organization and obj.team.organization == user.organization
 
 
 class GuardedOrganizationPermission(BasePermission):

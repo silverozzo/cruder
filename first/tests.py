@@ -4,9 +4,9 @@ from django.http                import HttpRequest
 from django.test                import TestCase
 from guardian.shortcuts         import assign_perm
 
-from .models      import CustomUser, Organization, Team
+from .models      import CustomUser, Organization, Team, Teammate
 from .admin       import OrganizationAdmin
-from .permissions import OrganizationAccess, TeamAccess
+from .permissions import OrganizationAccess, TeamAccess, TeammateAccess
 
 
 def creating_staff_user(organization=None):
@@ -47,6 +47,16 @@ def creating_team(organization, teamname = 'foobar'):
 	return team
 
 
+def creating_teammate(team, fullname='foobar'):
+	teammate = Teammate(
+		fullname = fullname,
+		team     = team
+	)
+	teammate.save()
+	
+	return teammate
+
+
 def make_request_with_user(user):
 	request = HttpRequest()
 	request.user = user
@@ -54,7 +64,6 @@ def make_request_with_user(user):
 	return request
 
 
-# Create your tests here.
 class AuthorizationContribTests(TestCase):
 	def test_new_user_creating(self):
 		user = creating_staff_user()
@@ -332,3 +341,101 @@ class TeamAccessTests(TestCase):
 		team    = creating_team(company)
 		user    = creating_superuser()
 		self.assertEqual(True, TeamAccess.can_delete(user, team))
+
+
+class TeammateAccessTests(TestCase):
+	
+	def test_get_empty_list_by_staffuser(self):
+		user = creating_staff_user()
+		self.assertEqual(0, len(TeammateAccess.queryset(user)))
+	
+	def test_get_simple_list_by_staffuser(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user()
+		self.assertEqual(0, len(TeammateAccess.queryset(user)))
+	
+	def test_simple_list_by_superuser(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_superuser()
+		self.assertEqual(1, len(TeammateAccess.queryset(user)))
+	
+	def test_list_by_linked_staffuser(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user(company)
+		self.assertEqual(0, len(TeammateAccess.queryset(user)))
+	
+	def test_list_by_linked_staffuser_with_global_perm(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user(company)
+		assign_perm('first.view_teammate', user)
+		self.assertEqual(1, len(TeammateAccess.queryset(user)))
+	
+	def test_list_by_staffuser_with_perm(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user()
+		assign_perm('first.view_teammate', user)
+		assign_perm('first.view_organization', user, company)
+		self.assertEqual(1, len(TeammateAccess.queryset(user)))
+	
+	def test_list_by_staffuser_with_perm(self):
+		first           = creating_organization('first')
+		first_team      = creating_team(first)
+		first_teammate  = creating_teammate(first_team)
+		second          = creating_organization('second')
+		second_team     = creating_team(second)
+		second_teammate = creating_teammate(second_team)
+		user            = creating_staff_user(first)
+		assign_perm('first.view_teammate', user)
+		assign_perm('first.view_organization', user, second)
+		
+		check = TeammateAccess.queryset(user)
+		self.assertEqual(1, len(check))
+		self.assertEqual(True, second_teammate in check)
+	
+	def test_changing_by_staffuser(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user()
+		self.assertEqual(False, TeammateAccess.can_change(user, teammate))
+	
+	def test_changing_by_superuser(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_superuser()
+		self.assertEqual(True, TeammateAccess.can_change(user, teammate))
+	
+	def test_changing_by_linked_staffuser(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user(company)
+		self.assertEqual(False, TeammateAccess.can_change(user, teammate))
+	
+	def test_changing_by_linked_staffuser(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user(company)
+		assign_perm('first.change_teammate', user)
+		self.assertEqual(True, TeammateAccess.can_change(user, teammate))
+	
+	def test_changing_by_staffuser_with_perm(self):
+		company  = creating_organization()
+		team     = creating_team(company)
+		teammate = creating_teammate(team)
+		user     = creating_staff_user()
+		assign_perm('first.change_teammate', user)
+		assign_perm('first.view_organization', user, company)
+		self.assertEqual(True, TeammateAccess.can_change(user, teammate))
