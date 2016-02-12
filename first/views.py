@@ -1,11 +1,9 @@
 from django.core.urlresolvers   import reverse_lazy
 from django.views               import generic
-from rest_condition             import ConditionalPermission, Or
-from rest_framework             import viewsets
+from rest_framework             import permissions, viewsets
 
 from .models      import CustomUser, Organization, Team, Teammate
-from .permissions import (GuardedOrganizationPermission,
-	GuardedTeamPermission, LinkedOrganizationPermission, LinkedTeamPermission)
+from .permissions import OrganizationAccess, TeamAccess, TeammateAccess
 from .serializers import (CustomUserSerializer, 
 	OrganizationSerializer, TeamSerializer, TeammateSerializer)
 
@@ -16,21 +14,30 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
 
 class OrganizationViewSet(viewsets.ModelViewSet):
-	queryset           = Organization.objects.all()
-	serializer_class   = OrganizationSerializer
-	permission_classes = [
-		Or(GuardedOrganizationPermission, LinkedOrganizationPermission),
-	]
+	serializer_class = OrganizationSerializer
+	
+	def get_queryset(self):
+		return OrganizationAccess.queryset(self.request.user)
 
 
 class TeamViewSet(viewsets.ModelViewSet):
-	queryset         = Team.objects.all()
 	serializer_class = TeamSerializer
-	permission_classes = [
-		Or(GuardedTeamPermission, LinkedTeamPermission),
-	]
+	
+	def get_queryset(self):
+		return TeamAccess.queryset(self.request.user)
 
 
 class TeammateViewSet(viewsets.ModelViewSet):
-	queryset         = Teammate.objects.all()
 	serializer_class = TeammateSerializer
+	
+	def get_queryset(self):
+		return TeammateAccess.queryset(self.request.user)
+
+
+class OrganizationRestPermission(permissions.BasePermission):
+	def has_object_permission(self, request, view, obj):
+		print('object permission called')
+		if request.method == 'POST' and obj:
+			return OrganizationAccess.can_change(request.user, obj)
+		if request.method == 'DELETE':
+			return OrganizationAccess.can_delete(request.user, obj)

@@ -5,9 +5,9 @@ import views
 
 router = routers.DefaultRouter()
 router.register(r'customuser',   views.CustomUserViewSet)
-router.register(r'organization', views.OrganizationViewSet)
-router.register(r'team',         views.TeamViewSet)
-router.register(r'teammate',     views.TeammateViewSet)
+router.register(r'organization', views.OrganizationViewSet, base_name='organization')
+router.register(r'team',         views.TeamViewSet,         base_name='team')
+router.register(r'teammate',     views.TeammateViewSet,     base_name='teammate')
 
 
 urlpatterns = [	
