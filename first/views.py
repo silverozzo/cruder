@@ -1,7 +1,7 @@
 from django.contrib.auth      import authenticate, login, logout
 from django.core.urlresolvers import reverse_lazy
-from django.http              import HttpResponse
-from django.shortcuts         import redirect, render
+from django.http              import HttpResponse, HttpResponseForbidden
+from django.shortcuts         import get_object_or_404, redirect, render
 from django.views             import generic
 from rest_framework           import permissions, viewsets
 
@@ -117,12 +117,24 @@ class OrganizationUpdateView(generic.UpdateView):
 	fields        = ['name']
 	template_name = 'first/update_form.html'
 	success_url   = reverse_lazy('first:organization_list')
+	
+	def dispatch(self, request, *args, **kwargs):
+		obj = get_object_or_404(self.model, pk=kwargs['pk'])
+		if not OrganizationAccess.can_change(request.user, obj):
+			return HttpResponseForbidden()
+		return super(OrganizationUpdateView, self).dispatch(request, *args, **kwargs)
 
 
 class OrganizationDeleteView(generic.DeleteView):
 	model         = Organization
 	template_name = 'first/delete_confirmation.html'
 	success_url   = reverse_lazy('first:organization_list')
+	
+	def dispatch(self, request, *args, **kwargs):
+		obj = get_object_or_404(self.model, pk=kwargs['pk'])
+		if not OrganizationAccess.can_delete(request.user, obj):
+			return HttpResponseForbidden()
+		return super(OrganizationUpdateView, self).dispatch(request, *args, **kwargs)
 
 
 class TeamListView(generic.ListView):
@@ -145,12 +157,24 @@ class TeamUpdateView(generic.UpdateView):
 	fields        = ['name']
 	template_name = 'first/update_form.html'
 	success_url   = reverse_lazy('first:team_list')
+	
+	def dispatch(self, request, *args, **kwargs):
+		obj = get_object_or_404(self.model, pk=kwargs['pk'])
+		if not TeamAccess.can_change(request.user, obj):
+			return HttpResponseForbidden()
+		return super(TeamUpdateView, self).dispatch(request, *args, **kwargs)
 
 
 class TeamDeleteView(generic.DeleteView):
 	model         = Team
 	template_name = 'first/delete_confirmation.html'
 	success_url   = reverse_lazy('first:team_list')
+	
+	def dispatch(self, request, *args, **kwargs):
+		obj = get_object_or_404(self.model, pk=kwargs['pk'])
+		if not TeamAccess.can_delete(request.user, obj):
+			return HttpResponseForbidden()
+		return super(TeamUpdateView, self).dispatch(request, *args, **kwargs)
 
 
 class TeammateListView(generic.ListView):
@@ -173,9 +197,21 @@ class TeammateUpdateView(generic.UpdateView):
 	fields        = ['fullname']
 	template_name = 'first/update_form.html'
 	success_url   = reverse_lazy('first:teammate_list')
+	
+	def dispatch(self, request, *args, **kwargs):
+		obj = get_object_or_404(self.model, pk=kwargs['pk'])
+		if not TeammateAccess.can_change(request.user, obj):
+			return HttpResponseForbidden()
+		return super(TeammateUpdateView, self).dispatch(request, *args, **kwargs)
 
 
 class TeammateDeleteView(generic.DeleteView):
 	model         = Teammate
 	template_name = 'first/delete_confirmation.html'
 	success_url   = reverse_lazy('first:teammate_list')
+	
+	def dispatch(self, request, *args, **kwargs):
+		obj = get_object_or_404(self.model, pk=kwargs['pk'])
+		if not TeammateAccess.can_delete(request.user, obj):
+			return HttpResponseForbidden()
+		return super(TeammateUpdateView, self).dispatch(request, *args, **kwargs)
