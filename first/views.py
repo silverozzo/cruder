@@ -84,21 +84,23 @@ class OrganizationListView(generic.ListView):
 
 
 class OrganizationCreateView(generic.CreateView):
-	model       = Organization
-	fields      = ['name']
+	model         = Organization
+	fields        = ['name']
 	template_name = 'first/update_form.html'
-	success_url = reverse_lazy('first:list')
+	success_url   = reverse_lazy('first:list')
 
 
 class OrganizationUpdateView(generic.UpdateView):
-	model       = Organization
-	fields      = ['name']
-	success_url = reverse_lazy('first:organization_list')
+	model         = Organization
+	fields        = ['name']
+	template_name = 'first/update_form.html'
+	success_url   = reverse_lazy('first:organization_list')
 
 
 class OrganizationDeleteView(generic.DeleteView):
-	model       = Organization
-	success_url = reverse_lazy('first:organization_list')
+	model         = Organization
+	template_name = 'first/delete_confirmation.html'
+	success_url   = reverse_lazy('first:organization_list')
 
 
 class TeamListView(generic.ListView):
@@ -110,21 +112,23 @@ class TeamListView(generic.ListView):
 
 
 class TeamCreateView(generic.CreateView):
-	model       = Team
-	fields      = ['name']
+	model         = Team
+	fields        = ['name']
 	template_name = 'first/update_form.html'
-	success_url = reverse_lazy('first:team_list')
+	success_url   = reverse_lazy('first:team_list')
 
 
 class TeamUpdateView(generic.UpdateView):
-	model       = Team
-	fields      = ['name']
-	success_url = reverse_lazy('first:team_list')
+	model         = Team
+	fields        = ['name']
+	template_name = 'first/update_form.html'
+	success_url   = reverse_lazy('first:team_list')
 
 
 class TeamDeleteView(generic.DeleteView):
-	model       = Team
-	success_url = reverse_lazy('first:team_list')
+	model         = Team
+	template_name = 'first/delete_confirmation.html'
+	success_url   = reverse_lazy('first:team_list')
 
 
 class TeammateListView(generic.ListView):
@@ -136,18 +140,20 @@ class TeammateListView(generic.ListView):
 
 
 class TeammateCreateView(generic.CreateView):
-	model       = Teammate
-	fields      = ['fullname']
+	model         = Teammate
+	fields        = ['fullname']
 	template_name = 'first/update_form.html'
-	success_url = reverse_lazy('first:teammate_list')
+	success_url   = reverse_lazy('first:teammate_list')
 
 
 class TeammateUpdateView(generic.UpdateView):
-	model       = Teammate
-	fields      = ['fullname']
-	success_url = reverse_lazy('first:teammate_list')
+	model         = Teammate
+	fields        = ['fullname']
+	template_name = 'first/update_form.html'
+	success_url   = reverse_lazy('first:teammate_list')
 
 
 class TeammateDeleteView(generic.DeleteView):
-	model       = Teammate
-	success_url = reverse_lazy('first:teammate_list')
+	model         = Teammate
+	template_name = 'first/delete_confirmation.html'
+	success_url   = reverse_lazy('first:teammate_list')
