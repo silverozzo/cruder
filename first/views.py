@@ -1,4 +1,4 @@
-from django.contrib.auth      import logout
+from django.contrib.auth      import authenticate, login, logout
 from django.core.urlresolvers import reverse_lazy
 from django.http              import HttpResponse
 from django.shortcuts         import redirect, render
@@ -80,9 +80,14 @@ def index(request):
 		return redirect('first:login')
 
 
-def login(request):
-	email    = request.POST['email']
-	password = request.POST['password']
+def login_view(request):
+	email    = request.POST.get('email', '')
+	password = request.POST.get('password', '')
+	if email and password:
+		user = authenticate(username=email, password=password)
+		if user and user.is_active:
+			login(request, user)
+			return redirect('first:main_menu')
 	
 	return render(request, 'first/login.html', {})
 

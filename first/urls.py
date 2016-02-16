@@ -13,8 +13,8 @@ router.register(r'teammate',     views.TeammateViewSet,     base_name='teammate'
 urlpatterns = [	
 	url(r'^api/', include(router.urls)),
 	
-	url(r'^$',        views.index,  name='main_menu'),
-	url(r'^login/$',  views.login,  name='login'),
+	url(r'^$',        views.index,       name='main_menu'),
+	url(r'^login/$',  views.login_view,  name='login'),
 	url(r'^logout/$', views.logout_view, name='logout'),
 	
 	url(r'^organization/$',                       views.OrganizationListView.as_view(),   name='organization_list'),
