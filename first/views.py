@@ -1,5 +1,7 @@
+from django.contrib.auth      import logout
 from django.core.urlresolvers import reverse_lazy
-from django.shortcuts         import render
+from django.http              import HttpResponse
+from django.shortcuts         import redirect, render
 from django.views             import generic
 from rest_framework           import permissions, viewsets
 
@@ -72,7 +74,22 @@ class TeammateViewSet(viewsets.ModelViewSet):
 
 
 def index(request):
-	return render(request, 'first/index.html', {})
+	if request.user.is_authenticated():
+		return render(request, 'first/index.html', {})
+	else:
+		return redirect('first:login')
+
+
+def login(request):
+	email    = request.POST['email']
+	password = request.POST['password']
+	
+	return render(request, 'first/login.html', {})
+
+
+def logout_view(request):
+	logout(request)
+	return redirect('first:main_menu')
 
 
 class OrganizationListView(generic.ListView):
@@ -87,7 +104,7 @@ class OrganizationCreateView(generic.CreateView):
 	model         = Organization
 	fields        = ['name']
 	template_name = 'first/update_form.html'
-	success_url   = reverse_lazy('first:list')
+	success_url   = reverse_lazy('first:organization_list')
 
 
 class OrganizationUpdateView(generic.UpdateView):

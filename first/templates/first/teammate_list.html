@@ -1,7 +1,8 @@
-<a href={% url 'first:teammate_create' %}>+</a>
+<a href={% url 'first:main_menu' %}>menu</a>
 
 {% if objects %}
 	<ul>
+		<li><a href={% url 'first:teammate_create' %}>+</a></li>
 		{% for obj in objects %}
 			<li>
 				<a href={% url 'first:teammate_delete' obj.id %}>x</a> : 
