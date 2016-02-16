@@ -1,6 +1,7 @@
-from django.core.urlresolvers   import reverse_lazy
-from django.views               import generic
-from rest_framework             import permissions, viewsets
+from django.core.urlresolvers import reverse_lazy
+from django.shortcuts         import render
+from django.views             import generic
+from rest_framework           import permissions, viewsets
 
 from .models      import CustomUser, Organization, Team, Teammate
 from .permissions import OrganizationAccess, TeamAccess, TeammateAccess
@@ -68,3 +69,85 @@ class TeammateViewSet(viewsets.ModelViewSet):
 	
 	def get_queryset(self):
 		return TeammateAccess.queryset(self.request.user)
+
+
+def index(request):
+	return render(request, 'first/index.html', {})
+
+
+class OrganizationListView(generic.ListView):
+	template_name       = 'first/organization_list.html'
+	context_object_name = 'objects'
+	
+	def get_queryset(self):
+		return OrganizationAccess.queryset(self.request.user)
+
+
+class OrganizationCreateView(generic.CreateView):
+	model       = Organization
+	fields      = ['name']
+	template_name = 'first/update_form.html'
+	success_url = reverse_lazy('first:list')
+
+
+class OrganizationUpdateView(generic.UpdateView):
+	model       = Organization
+	fields      = ['name']
+	success_url = reverse_lazy('first:organization_list')
+
+
+class OrganizationDeleteView(generic.DeleteView):
+	model       = Organization
+	success_url = reverse_lazy('first:organization_list')
+
+
+class TeamListView(generic.ListView):
+	template_name       = 'first/team_list.html'
+	context_object_name = 'objects'
+	
+	def get_queryset(self):
+		return TeamAccess.queryset(self.request.user)
+
+
+class TeamCreateView(generic.CreateView):
+	model       = Team
+	fields      = ['name']
+	template_name = 'first/update_form.html'
+	success_url = reverse_lazy('first:team_list')
+
+
+class TeamUpdateView(generic.UpdateView):
+	model       = Team
+	fields      = ['name']
+	success_url = reverse_lazy('first:team_list')
+
+
+class TeamDeleteView(generic.DeleteView):
+	model       = Team
+	success_url = reverse_lazy('first:team_list')
+
+
+class TeammateListView(generic.ListView):
+	template_name       = 'first/teammate_list.html'
+	context_object_name = 'objects'
+	
+	def get_queryset(self):
+		return TeammateAccess.queryset(self.request.user)
+
+
+class TeammateCreateView(generic.CreateView):
+	model       = Teammate
+	fields      = ['fullname']
+	template_name = 'first/update_form.html'
+	success_url = reverse_lazy('first:teammate_list')
+
+
+class TeammateUpdateView(generic.UpdateView):
+	model       = Teammate
+	fields      = ['fullname']
+	success_url = reverse_lazy('first:teammate_list')
+
+
+class TeammateDeleteView(generic.DeleteView):
+	model       = Teammate
+	success_url = reverse_lazy('first:teammate_list')

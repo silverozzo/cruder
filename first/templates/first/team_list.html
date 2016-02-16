@@ -1,0 +1,14 @@
+<a href={% url 'first:team_create' %}>+</a>
+
+{% if objects %}
+	<ul>
+		{% for obj in objects %}
+			<li>
+				<a href={% url 'first:team_delete' obj.id %}>x</a> : 
+				<a href={% url 'first:team_update' obj.id %}>{{ obj }}</a>
+			</li>
+		{% endfor %}
+	</ul>
+{% else %}
+	no records
+{% endif %}

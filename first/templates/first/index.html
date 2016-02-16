@@ -1,14 +1,5 @@
-<a href={% url 'first:create' %}>+</a>
-
-{% if foobars %}
-	<ul>
-		{% for foobar in foobars %}
-			<li>
-				<a href={% url 'first:delete' foobar.id %}>x</a> : 
-				<a href={% url 'first:update' foobar.id %} >{{ foobar }}</a>
-			</li>
-		{% endfor %}
-	</ul>
-{% else %}
-	no records
-{% endif %}
+<ul>
+	<li><a href={% url 'first:organization_list' %}>organizations</a></li>
+	<li><a href={% url 'first:team_list' %}>teams</a></li>
+	<li><a href={% url 'first:teammate_list' %}>teammates</a></li>
+</ul>
