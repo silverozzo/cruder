@@ -1,9 +1,11 @@
 from django.contrib.admin.sites import AdminSite
+from django.contrib.auth        import authenticate, login, logout
 from django.contrib.auth.models import Permission
 from django.http                import HttpRequest
 from django.test                import TestCase
 from guardian.shortcuts         import assign_perm
 
+from .managers    import CustomUserManager
 from .models      import CustomUser, Organization, Team, Teammate
 from .admin       import OrganizationAdmin
 from .permissions import OrganizationAccess, TeamAccess, TeammateAccess
@@ -439,3 +441,25 @@ class TeammateAccessTests(TestCase):
 		assign_perm('first.change_teammate', user)
 		assign_perm('first.view_organization', user, company)
 		self.assertEqual(True, TeammateAccess.can_change(user, teammate))
+
+
+class UserCreatingTests(TestCase):
+	def test_creating_stuff_user(self):
+		manager = CustomUser.objects
+		check   = manager.create_user('test@test.com', 'tester')
+		user    = authenticate(username='test@test.com', password='tester')
+		self.assertEqual(check, user)
+	
+	def test_login_stuff_user(self):
+		manager = CustomUser.objects
+		check   = manager.create_user('test@test.com', 'tester')
+		user    = authenticate(username='test@test.com', password='tester')
+		self.assertEqual(True, user.is_active)
+	
+	def test_creating_super_user(self):
+		manager = CustomUser.objects
+		check   = manager.create_superuser('admin@admin.com', 'admin')
+		user    = authenticate(username='admin@admin.com', password='admin')
+		self.assertEqual(check, user)
+		self.assertEqual(True, user.is_superuser)
+
